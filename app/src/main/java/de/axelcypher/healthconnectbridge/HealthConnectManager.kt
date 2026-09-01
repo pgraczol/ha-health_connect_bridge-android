@@ -4,9 +4,10 @@ import android.content.Context
 import android.content.Intent
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
-import androidx.health.connect.client.records.MealType
 import androidx.health.connect.client.records.NutritionRecord
+import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.metadata.Metadata
+import androidx.health.connect.client.units.Mass
 import androidx.health.connect.client.units.grams
 import androidx.health.connect.client.units.kilocalories
 import java.time.Instant
@@ -34,14 +35,41 @@ class HealthConnectManager(context: Context) {
         }
 
     suspend fun hasWritePermission(): Boolean {
-        if (availability() != HealthConnectAvailability.AVAILABLE) return false
+        if (availability() != HealthConnectAvailability.AVAILABLE) {
+            return false
+        }
 
-        return client()
-            .permissionController
-            .getGrantedPermissions()
-            .contains(WRITE_NUTRITION_PERMISSION)
+        val permissions =
+            client().permissionController.getGrantedPermissions()
+
+        return permissions.contains(WRITE_NUTRITION_PERMISSION)
     }
 
+    /**
+     * Legacy weight support.
+     *
+     * Kept because the original WeightSyncRepository still references it.
+     */
+    suspend fun writeWeight(
+        weightKg: Double,
+        instant: Instant,
+    ) {
+        val zoneOffset: ZoneOffset =
+            ZoneOffset.systemDefault().rules.getOffset(instant)
+
+        val record = WeightRecord(
+            time = instant,
+            zoneOffset = zoneOffset,
+            weight = Mass.kilograms(weightKg),
+            metadata = Metadata.manualEntry(),
+        )
+
+        client().insertRecords(listOf(record))
+    }
+
+    /**
+     * Writes one food item to Health Connect as a NutritionRecord.
+     */
     suspend fun writeNutrition(
         name: String,
         kcal: Double,
@@ -79,6 +107,7 @@ class HealthConnectManager(context: Context) {
         HealthConnectClient.getOrCreate(appContext)
 
     companion object {
+
         val WRITE_NUTRITION_PERMISSION: String =
             HealthPermission.getWritePermission(NutritionRecord::class)
 
