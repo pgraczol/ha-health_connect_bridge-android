@@ -37,7 +37,7 @@ fun MainScreen(
     state: MainUiState,
     onGrantPermission: () -> Unit,
     onOpenSettings: () -> Unit,
-    onSendTestWeight: () -> Unit,
+    onSendTestNutrition: () -> Unit,
     onClearDuplicateState: () -> Unit,
 ) {
     MaterialTheme {
@@ -103,6 +103,15 @@ fun MainScreen(
                     Text("Open Health Connect settings")
                 }
 
+                if (BuildConfig.DEBUG) {
+                    OutlinedButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onSendTestNutrition,
+                    ) {
+                        Text("Send test nutrition locally")
+                    }
+                }
+
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onClearDuplicateState,
@@ -144,6 +153,7 @@ private fun StatusRow(
             label,
             modifier = Modifier.weight(1f),
         )
+
         Text(
             value,
             modifier = Modifier.weight(1f),
