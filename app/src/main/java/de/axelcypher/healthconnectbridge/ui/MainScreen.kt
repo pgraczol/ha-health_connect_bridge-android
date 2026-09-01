@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.axelcypher.healthconnectbridge.AppPrefs
 import de.axelcypher.healthconnectbridge.AppStatus
+import de.axelcypher.healthconnectbridge.BuildConfig
 import de.axelcypher.healthconnectbridge.HealthConnectAvailability
 import java.time.Instant
 import java.time.ZoneId
