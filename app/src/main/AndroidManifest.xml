@@ -48,6 +48,13 @@
                 <action android:name="de.axelcypher.healthconnectbridge.WRITE_WEIGHT" />
             </intent-filter>
         </receiver>
+        <receiver
+    android:name=".NutritionBroadcastReceiver"
+    android:exported="true">
+    <intent-filter>
+        <action android:name="de.axelcypher.healthconnectbridge.WRITE_NUTRITION" />
+    </intent-filter>
+</receiver>
     </application>
 
 </manifest>
