@@ -4,6 +4,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class NutritionBroadcastReceiver : BroadcastReceiver() {
 
@@ -14,9 +17,7 @@ class NutritionBroadcastReceiver : BroadcastReceiver() {
 
         val pendingResult = goAsync()
 
-        kotlinx.coroutines.CoroutineScope(
-            kotlinx.coroutines.Dispatchers.IO
-        ).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 when (val result = NutritionIntentParser.parse(intent)) {
 
