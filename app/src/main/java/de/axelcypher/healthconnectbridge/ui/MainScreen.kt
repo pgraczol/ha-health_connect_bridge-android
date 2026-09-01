@@ -19,16 +19,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.axelcypher.healthconnectbridge.AppPrefs
 import de.axelcypher.healthconnectbridge.AppStatus
-import de.axelcypher.healthconnectbridge.BuildConfig
 import de.axelcypher.healthconnectbridge.HealthConnectAvailability
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 data class MainUiState(
-    val availability: HealthConnectAvailability = HealthConnectAvailability.UNAVAILABLE,
+    val availability: HealthConnectAvailability =
+        HealthConnectAvailability.UNAVAILABLE,
     val permissionGranted: Boolean = false,
-    val status: AppStatus = AppStatus(null, null, null, null, emptyList()),
+    val status: AppStatus =
+        AppStatus(null, null, null, null, emptyList()),
 )
 
 @Composable
@@ -51,56 +52,57 @@ fun MainScreen(
                     text = "HealthConnectBridge",
                     style = MaterialTheme.typography.headlineMedium,
                 )
+
                 StatusRow(
                     "Health Connect available",
                     when (state.availability) {
                         HealthConnectAvailability.AVAILABLE -> "yes"
-                        HealthConnectAvailability.UPDATE_REQUIRED -> "update required"
+                        HealthConnectAvailability.UPDATE_REQUIRED ->
+                            "update required"
                         HealthConnectAvailability.UNAVAILABLE -> "no"
                     },
                 )
+
                 StatusRow(
-                    "WRITE_WEIGHT permission",
+                    "WRITE_NUTRITION permission",
                     if (state.permissionGranted) "granted" else "missing",
                 )
-                StatusRow(
-                    "Last received weight",
-                    state.status.lastReceivedWeightKg
-                        ?.let { "${AppPrefs.formatWeight(it)} kg" }
-                        ?: "-",
-                )
+
                 StatusRow(
                     "Last received",
                     state.status.lastReceivedAt.formatForDisplay(),
                 )
+
                 StatusRow(
                     "Last written to Health Connect",
                     state.status.lastWrittenAt.formatForDisplay(),
                 )
-                StatusRow("Last error", state.status.lastError ?: "-")
+
+                StatusRow(
+                    "Last error",
+                    state.status.lastError ?: "-",
+                )
 
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onGrantPermission,
-                    enabled = state.availability == HealthConnectAvailability.AVAILABLE,
+                    enabled =
+                        state.availability ==
+                            HealthConnectAvailability.AVAILABLE,
                 ) {
                     Text("Grant Health Connect permission")
                 }
+
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onOpenSettings,
-                    enabled = state.availability != HealthConnectAvailability.UNAVAILABLE,
+                    enabled =
+                        state.availability !=
+                            HealthConnectAvailability.UNAVAILABLE,
                 ) {
                     Text("Open Health Connect settings")
                 }
-                if (BuildConfig.DEBUG) {
-                    OutlinedButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = onSendTestWeight,
-                    ) {
-                        Text("Send test weight locally")
-                    }
-                }
+
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onClearDuplicateState,
@@ -108,12 +110,21 @@ fun MainScreen(
                     Text("Clear duplicate state")
                 }
 
-                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
-                Text("Local log", style = MaterialTheme.typography.titleMedium)
+                HorizontalDivider(
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
+                Text(
+                    "Local log",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+
                 if (state.status.logs.isEmpty()) {
                     Text("No entries yet.")
                 } else {
-                    state.status.logs.forEach { Text(it) }
+                    state.status.logs.forEach {
+                        Text(it)
+                    }
                 }
             }
         }
@@ -121,19 +132,28 @@ fun MainScreen(
 }
 
 @Composable
-private fun StatusRow(label: String, value: String) {
+private fun StatusRow(
+    label: String,
+    value: String,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(label, modifier = Modifier.weight(1f))
-        Text(value, modifier = Modifier.weight(1f))
+        Text(
+            label,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            value,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
 private fun Instant?.formatForDisplay(): String =
     this?.let(DISPLAY_FORMATTER::format) ?: "-"
 
-private val DISPLAY_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-    .withZone(ZoneId.systemDefault())
-
+private val DISPLAY_FORMATTER =
+    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        .withZone(ZoneId.systemDefault())
