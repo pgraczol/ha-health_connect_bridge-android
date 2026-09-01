@@ -26,15 +26,19 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch { refreshStatus() }
     }
 
-    private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-        runOnUiThread { render() }
-    }
+    private val prefsListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+            runOnUiThread { render() }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         appPrefs = AppPrefs(this)
         healthConnect = HealthConnectManager(this)
+
         appPrefs.registerListener(prefsListener)
+
         render()
     }
 
@@ -49,50 +53,89 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun render() {
-        uiState = uiState.copy(status = appPrefs.snapshot())
+        uiState = uiState.copy(
+            status = appPrefs.snapshot()
+        )
+
         setContent {
             MainScreen(
                 state = uiState,
+
                 onGrantPermission = {
-                    if (healthConnect.availability() == HealthConnectAvailability.AVAILABLE) {
-                        permissionLauncher.launch(HealthConnectManager.REQUIRED_PERMISSIONS)
+                    if (
+                        healthConnect.availability() ==
+                        HealthConnectAvailability.AVAILABLE
+                    ) {
+                        permissionLauncher.launch(
+                            HealthConnectManager.REQUIRED_PERMISSIONS
+                        )
                     } else {
-                        appPrefs.recordError("Health Connect is not available for permission request.")
+                        appPrefs.recordError(
+                            "Health Connect is not available for permission request."
+                        )
                     }
                 },
+
                 onOpenSettings = {
-                    runCatching { startActivity(healthConnect.settingsIntent()) }
-                        .onFailure {
-                            appPrefs.recordError("Could not open Health Connect settings.")
-                        }
+                    runCatching {
+                        startActivity(
+                            healthConnect.settingsIntent()
+                        )
+                    }.onFailure {
+                        appPrefs.recordError(
+                            "Could not open Health Connect settings."
+                        )
+                    }
                 },
-                onSendTestWeight = ::sendTestWeight,
-                onClearDuplicateState = { DuplicateGuard(appPrefs).clear() },
+
+                onSendTestNutrition = ::sendTestNutrition,
+
+                onClearDuplicateState = {
+                    DuplicateGuard(appPrefs).clear()
+                },
             )
         }
     }
 
     private suspend fun refreshStatus() {
         val availability = healthConnect.availability()
+
         val permissionGranted = runCatching {
             availability == HealthConnectAvailability.AVAILABLE &&
                 healthConnect.hasWritePermission()
         }.getOrDefault(false)
+
         uiState = uiState.copy(
             availability = availability,
             permissionGranted = permissionGranted,
             status = appPrefs.snapshot(),
         )
+
         render()
     }
 
-    private fun sendTestWeight() {
-        val intent = Intent(WeightIntentParser.ACTION_WRITE_WEIGHT)
+    private fun sendTestNutrition() {
+        val payload = """
+            [
+              {
+                "date": "2026-08-30",
+                "time": "08:53",
+                "meal": "Reggeli",
+                "name": "Teszt zabkasa",
+                "kcal": 415.43,
+                "protein": 14.07,
+                "carbs": 37.02,
+                "fat": 24.7
+              }
+            ]
+        """.trimIndent()
+
+        val intent = Intent(
+            NutritionIntentParser.ACTION_WRITE_NUTRITION
+        )
             .setPackage(packageName)
-            .putExtra("weight_kg", 89.4)
-            .putExtra("timestamp", Instant.now().toString())
-            .putExtra("source", "homeassistant")
+            .putExtra("payload", payload)
+
         sendBroadcast(intent)
     }
 }
-
